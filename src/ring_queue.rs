@@ -1,4 +1,4 @@
-use core::{alloc::Layout, marker::PhantomData, mem::MaybeUninit, ptr::copy_nonoverlapping, sync::atomic::{fence, AtomicU32, AtomicU64, Ordering}};
+use core::{alloc::Layout, marker::PhantomData, mem::MaybeUninit, ptr::copy_nonoverlapping, sync::atomic::{fence, AtomicU32, Ordering}};
 
 #[repr(C)]
 struct Metadata {
@@ -20,6 +20,10 @@ impl <T> RingQueue<T> {
   }
   pub fn dequeue_item(&self, item: &mut MaybeUninit<T>) -> bool {
     dequeue_item_prim(&self.raw_queue, Layout::new::<Metadata>(), Layout::new::<T>(), item.as_mut_ptr().cast())
+  }
+  /// ensure to drain the q
+  pub unsafe fn dispose(self) {
+    destroy(self.raw_queue, Layout::new::<Metadata>(), Layout::new::<T>());
   }
 }
 
